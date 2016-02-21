@@ -18,7 +18,7 @@ temp = ((( temp_high * 256 ) + temp_low ) >> 4 )
 if temp > 0x7ff:
 	temp = temp - 4096
 
-temp_C = float( temp ) * 0.0625
-temp_F = temp_C * 9/5 + 32
+temp_celsius = float( temp ) * 0.0625
+temp_fahr = temp_celsius * 9/5 + 32
 
-print "TEMP = %3.1f C -- %3.1f F" % (temp_C, temp_F )
+print "TEMP = %3.1f F" % ( temp_fahr )
