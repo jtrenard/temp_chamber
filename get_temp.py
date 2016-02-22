@@ -13,6 +13,9 @@ DEVICE_ADDRESS = 0x48
 count = 0
 total = 0
 
+def post_temp( temp ):
+    print "TEMP = %3.1f F" % ( temp_fahr )
+
 while True:
     temp_reg_12bit = bus.read_word_data( DEVICE_ADDRESS, 0 )
     temp_low = (temp_reg_12bit & 0xff00 ) >> 8
@@ -28,6 +31,8 @@ while True:
 
     total += temp_fahr
     count+=1
-    if( count % interval ):
-        print "TEMP = %3.1f F" % ( temp_fahr )
+    avg = float( total ) / count
+    print "Total: %d -- Count: %d -- Avg: %f" % ( total, count, avg )
+    if( count % interval == 0 ):
+        post_temp( total / count )
     time.sleep(1.0)
