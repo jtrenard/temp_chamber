@@ -2,20 +2,54 @@
 
 import smbus
 import time
+import datetime
 import argparse
+import sqlite3
 
 #0 = /dev/i2c-0
 #1 = /dev/i2c-1
 I2C_BUS=1
 bus = smbus.SMBus( I2C_BUS )
 
-interval = 10
 DEVICE_ADDRESS = 0x48
-count = 0
-total = 0
 
-def post_temp( temp ):
-    print "TEMP = %3.1f F" % ( temp_fahr )
+sqlite_db_file = './env_stats.db'
+
+def post_temps( temps ):
+
+    now = datetime.datetime.now()
+    str_now = now.strftime( '%B %d, %Y %I:%M%p' )
+
+    db = sqlite3.connect( sqlite_db_file )
+    cursor = db.cursor()
+
+    sql_query = '''INSERT INTO temps( read_datetime, readings ) 
+    VALUES("%s","%s")'''% ( str_now, str( temps ) )
+    print "query:", sql_query 
+
+    try:
+        cursor.execute( sql_query )
+    except:
+        db.close()
+        return
+
+    db.commit()
+    db.close()
+
+def get_temp():
+    temp_reg_12bit = bus.read_word_data( DEVICE_ADDRESS, 0 )
+    temp_low = (temp_reg_12bit & 0xff00 ) >> 8
+    temp_high = (temp_reg_12bit & 0x00ff )
+
+    temp = ((( temp_high * 256 ) + temp_low ) >> 4 )
+
+    if temp > 0x7ff:
+        temp = temp - 4096
+
+    temp_celsius = float( temp ) * 0.0625
+    temp_fahr = temp_celsius * 9/5 + 32
+    return temp_fahr
+
 
 def main( options ):
     sample = 0
@@ -25,17 +59,7 @@ def main( options ):
     print "Sleep_time:", sleep_time
 
     while True:
-        temp_reg_12bit = bus.read_word_data( DEVICE_ADDRESS, 0 )
-        temp_low = (temp_reg_12bit & 0xff00 ) >> 8
-        temp_high = (temp_reg_12bit & 0x00ff )
-
-        temp = ((( temp_high * 256 ) + temp_low ) >> 4 )
-
-        if temp > 0x7ff:
-            temp = temp - 4096
-
-        temp_celsius = float( temp ) * 0.0625
-        temp_fahr = temp_celsius * 9/5 + 32
+        temp_fahr = get_temp()
 
         temps += [temp_fahr]
         print "Temp:", temp_fahr
@@ -44,6 +68,7 @@ def main( options ):
         if sample == 0:
             total = sum( temps )
             avg = float( total ) / options.samples
+            post_temps( temps )
             print temps
             print "\tMax:", max( temps )
             print "\tMin:", min( temps )
@@ -57,7 +82,7 @@ def main( options ):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument( '-i', dest='interval', default=20, type=int )
+    parser.add_argument( '-i', dest='interval', default=60, type=int )
     parser.add_argument( '-s', dest='samples', default=20, type=int )
     args = parser.parse_args()
     main( args )
