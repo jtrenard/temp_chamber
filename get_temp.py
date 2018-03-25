@@ -56,23 +56,26 @@ def main( options ):
     temps = []
 
     sleep_time = float( options.interval ) / options.samples
-    print "Sleep_time:", sleep_time
+    if options.verbose:
+        print "Sleep_time:", sleep_time
 
     while True:
         temp_fahr = get_temp()
 
         temps += [temp_fahr]
-        print "Temp:", temp_fahr
+        if options.verbose:
+            print "Temp:", temp_fahr
 
         sample = (sample + 1) % options.samples 
         if sample == 0:
             total = sum( temps )
             avg = float( total ) / options.samples
             post_temps( temps )
-            print temps
-            print "\tMax:", max( temps )
-            print "\tMin:", min( temps )
-            print "\tAvg:", avg
+            if options.verbose:
+                print temps
+                print "\tMax:", max( temps )
+                print "\tMin:", min( temps )
+                print "\tAvg:", avg
 
             total = 0
             temps = []
@@ -84,5 +87,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument( '-i', dest='interval', default=60, type=int )
     parser.add_argument( '-s', dest='samples', default=20, type=int )
+    parser.add_argument( '-v', dest='verbose', action="store_true", 
+                        default=False )
     args = parser.parse_args()
     main( args )
