@@ -12,12 +12,24 @@ print('')
 
 print("temperature history")
 
-db = sqlite3.connect('./env_state.db' )
+try:
+    db = sqlite3.connect('./env_stats.db' )
+except:
+    print( 'failed to connect to database' )
 
-cursor = db.cursor()
-query = '''SELECT * FROM temps WHERE read_datetime >= DATEADD( n, -2, 
-    GETDATE())'''
+try:
+    cursor = db.cursor()
+except:
+    print( 'db.cursor() failed' )
+
+query = '''SELECT * FROM "temps" WHERE read_datetime BETWEEN "2018-03-22" AND 
+"2018-03-31"'''
 
 cursor.execute( query )
 
+all = cursor.fetchall()
+for thing in all:
+    print(thing, '<br>')
+
 db.close()
+

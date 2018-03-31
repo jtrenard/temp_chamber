@@ -18,7 +18,8 @@ sqlite_db_file = './env_stats.db'
 def post_temps( temps ):
 
     now = datetime.datetime.now()
-    str_now = now.strftime( '%B %d, %Y %I:%M%p' )
+    #str_now = now.strftime( '%B %d, %Y %I:%M%p' )
+    str_now = now.strftime( '%Y-%m-%d %I:%M%p' )
 
     db = sqlite3.connect( sqlite_db_file )
     cursor = db.cursor()
