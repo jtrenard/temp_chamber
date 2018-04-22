@@ -22,12 +22,17 @@ def generate_png( cursor, start, end, filename ):
     all = cursor.fetchall()
     for thing in all:
         #print(thing, '<br>')
-        temp_list += thing[1].strip('[]').split(',')
+        str_temps = thing[1].strip('[]').split(',') 
+        temps = [float(this_temp) for this_temp in str_temps]
+        temp_avg = sum( temps ) / len( temps )
+        temp_list += [temp_avg]
+
 
     float_temps = [float(temp) for temp in temp_list]
 
     print( '</p>' )
 
+    fig = plt.figure()
     plt.plot(float_temps)
     plt.savefig('graphs/%s' % (filename))
 
